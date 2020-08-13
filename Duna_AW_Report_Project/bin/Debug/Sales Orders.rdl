@@ -17,6 +17,11 @@
     <DataSet Name="AdventureWorksDataSet">
       <Query>
         <DataSourceName>AdventureWorks2017</DataSourceName>
+        <QueryParameters>
+          <QueryParameter Name="@OrderNumber">
+            <Value>=Parameters!OrderNumber.Value</Value>
+          </QueryParameter>
+        </QueryParameters>
         <CommandText>SELECT soh.OrderDate AS Date, soh.SalesOrderNumber AS [Order], pps.Name AS Subcat, pp.Name AS Product, sd.OrderQty AS Qty, sd.LineTotal
 FROM     Sales.SalesPerson AS sp INNER JOIN
                   Sales.SalesOrderHeader AS soh ON sp.BusinessEntityID = soh.SalesPersonID INNER JOIN
@@ -24,8 +29,10 @@ FROM     Sales.SalesPerson AS sp INNER JOIN
                   Production.Product AS pp ON sd.ProductID = pp.ProductID INNER JOIN
                   Production.ProductSubcategory AS pps ON pp.ProductSubcategoryID = pps.ProductSubcategoryID INNER JOIN
                   Production.ProductCategory AS ppc ON ppc.ProductCategoryID = pps.ProductCategoryID
-WHERE  (ppc.Name = N'Clothing')
-GROUP BY soh.OrderDate, soh.SalesOrderNumber, pps.Name, pp.Name, sd.OrderQty, sd.LineTotal</CommandText>
+WHERE  (ppc.Name = N'Clothing') OR
+                  (@OrderNumber IS NULL)
+GROUP BY soh.OrderDate, soh.SalesOrderNumber, pps.Name, pp.Name, sd.OrderQty, sd.LineTotal
+HAVING (UPPER(soh.SalesOrderNumber) = UPPER(@OrderNumber))</CommandText>
       </Query>
       <Fields>
         <Field Name="Date">
@@ -918,10 +925,25 @@ GROUP BY soh.OrderDate, soh.SalesOrderNumber, pps.Name, pp.Name, sd.OrderQty, sd
       </Page>
     </ReportSection>
   </ReportSections>
+  <ReportParameters>
+    <ReportParameter Name="OrderNumber">
+      <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <AllowBlank>true</AllowBlank>
+      <Prompt>Order Number</Prompt>
+    </ReportParameter>
+  </ReportParameters>
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>4</NumberOfColumns>
       <NumberOfRows>2</NumberOfRows>
+      <CellDefinitions>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>0</RowIndex>
+          <ParameterName>OrderNumber</ParameterName>
+        </CellDefinition>
+      </CellDefinitions>
     </GridLayoutDefinition>
   </ReportParametersLayout>
   <rd:ReportUnitType>Inch</rd:ReportUnitType>
